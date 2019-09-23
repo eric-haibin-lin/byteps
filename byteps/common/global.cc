@@ -43,6 +43,7 @@ uint32_t BytePSGlobal::_partition_bytes = 4096000;
 std::shared_ptr<BytePSComm> BytePSGlobal::_basic_comm;
 std::shared_ptr<BytePSSharedMemory> BytePSGlobal::_shm_obj;
 std::unordered_map<uint64_t, PSKV> BytePSGlobal::ps_kv_;
+std::priority_queue<std::pair<int64_t, int32_t>> BytePSGlobal::ps_kv_heap_;
 
 volatile BytePSScheduledQueue* BytePSGlobal::_queues[QueueNum] = {NULL};
 std::mutex BytePSGlobal::_queues_mutex[QueueNum];
@@ -303,8 +304,28 @@ PSKV& BytePSGlobal::EncodeDefaultKey(uint64_t key, size_t len) {
     auto krs = ps::Postoffice::Get()->GetServerKeyRanges();
     const int num_servers = krs.size();
     BPS_CHECK_GT(num_servers, 0);
+    int64_t server = -1;
+    int load_balance = atoi(getenv("BYTEPS_LOAD_BALANCE"));
+    if (load_balance == 0) {
+    // 0: round robin
+      server = (((key >> 16) + key) * 9973) % num_servers;
+    } else if (load_balance == 1) {
+    // 1: hash
     // send it to a single random picked server
-    int server = std::hash<std::string>{}(std::to_string(key)) % num_servers;
+      server = std::hash<std::string>{}(std::to_string(key)) % num_servers;
+    } else {
+    // 2: greedy
+      if (ps_kv_heap_.empty()) {
+        for (int32_t i = 0; i < num_servers; i++) {
+          ps_kv_heap_.emplace(std::make_pair(0, i));
+        }
+      }
+      std::pair<int64_t, int64_t> server_load_id = ps_kv_heap_.top();
+      ps_kv_heap_.pop();
+      int64_t load = server_load_id.first;
+      server = server_load_id.second;
+      ps_kv_heap_.emplace(std::make_pair(load - len, server));
+    }
     BPS_LOG(DEBUG) << "key " << key << " assigned to server " << server << ", len = " << len;
     ps::Key ps_key = krs[server].begin() + key;
     BPS_CHECK_LT(ps_key, krs[server].end());

@@ -84,6 +84,7 @@ class BytePSGlobal {
   static uint32_t GetTensorCount();
 
   static std::unordered_map<uint64_t, PSKV> ps_kv_;
+  static std::priority_queue<std::pair<int64_t, int32_t>> ps_kv_heap_;
   static PSKV& EncodeDefaultKey(uint64_t key, size_t len);
 
   static uint32_t GetPartitionBound() { return _partition_bytes; }
