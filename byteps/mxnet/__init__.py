@@ -480,7 +480,7 @@ class DistributedTrainer(mx.gluon.Trainer):
         self.recorder.block = block
         self.imported_net = None
 
-        if not self.recorder.end_trace():
+        if not self.recorder.end_trace() and os.environ.get('ENABLE_EXPORT', False):
             if train_data is None or ctx is None:
                 raise ValueError("`train_data` and `ctx` must be given if you want to call auto-profiling.")
 
