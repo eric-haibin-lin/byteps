@@ -62,5 +62,5 @@ pip3 install networkx
 ##----------------------------------- Start to run the program ----------------------------------- 
 echo 
 echo "-------------------- Start to run the program ---------------"
-python $path/../../launcher/launch.py ${PYTHON} $path/train_mnist_byteps.py
+${PYTHON} $path/../../launcher/launch.py ${PYTHON} $path/train_mnist_byteps.py
 # --num-iters 1000
