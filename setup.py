@@ -274,7 +274,7 @@ def get_common_options(build_ext):
     LIBRARIES += nccl_libs
 
     INCLUDES += ['/opt/amazon/efa/include']
-    LIBRARY_DIRS += ['/opt/amazon/efa/lib']
+    LIBRARY_DIRS += ['/opt/amazon/efa/lib', '/opt/amazon/efa/lib64']
 
     # RDMA and NUMA libs
     LIBRARIES += ['numa']
