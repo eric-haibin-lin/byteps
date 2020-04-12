@@ -234,7 +234,11 @@ def has_rdma_header():
     if ret_code != 0:
         import warnings
         warnings.warn("\n\n No RDMA header file detected. Will disable RDMA for compilation! \n\n")
-    return ret_code==0
+    return False
+    # return ret_code==0
+
+def has_libfabric_header():
+    return True
 
 def get_common_options(build_ext):
     cpp_flags = get_cpp_flags(build_ext)
@@ -269,12 +273,17 @@ def get_common_options(build_ext):
     LIBRARY_DIRS += nccl_lib_dirs
     LIBRARIES += nccl_libs
 
+    INCLUDES += ['/opt/amazon/efa/include']
+    LIBRARY_DIRS += ['/opt/amazon/efa/lib']
+
     # RDMA and NUMA libs
     LIBRARIES += ['numa']
     
     # auto-detect rdma
     if has_rdma_header():
         LIBRARIES += ['rdmacm', 'ibverbs', 'rt']
+    if has_libfabric_header():
+        LIBRARIES += ['fabric']
 
     # ps-lite
     EXTRA_OBJECTS = ['3rdparty/ps-lite/build/libps.a',
@@ -306,7 +315,7 @@ def build_server(build_ext, options):
     if has_rdma_header():
         server_lib.libraries = ['rdmacm', 'ibverbs', 'rt']
     else:
-        server_lib.libraries = []
+        server_lib.libraries = ['fabric']
 
     build_ext.build_extension(server_lib)
 
@@ -791,7 +800,10 @@ class custom_build_ext(build_ext):
                 make_option += "-j "
             if has_rdma_header():
                 make_option += "USE_RDMA=1 "
+            if has_libfabric_header():
+                make_option += "USE_LFFABRIC=1"
 
+            print(make_option)
             make_process = subprocess.Popen('make ' + make_option,
                                             cwd='3rdparty/ps-lite',
                                             stdout=sys.stdout,
