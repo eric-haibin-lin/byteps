@@ -801,7 +801,7 @@ class custom_build_ext(build_ext):
             if has_rdma_header():
                 make_option += "USE_RDMA=1 "
             if has_libfabric_header():
-                make_option += "USE_LFFABRIC=1"
+                make_option += "USE_FABRIC=1"
 
             print(make_option)
             make_process = subprocess.Popen('make ' + make_option,
