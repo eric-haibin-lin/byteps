@@ -103,12 +103,10 @@ class MXTest:
         dims = [1, 2, 3]
         ctx = self._current_context()
         count = 200
-        shapes = [(), (17), (3, 3), (17, 17, 17)]
-        if True:
-            dtype = 'float32'
-            dim = 1
-            mx.random.seed(1234)
-            tensor = mx.nd.random.uniform(-100, 100, shape=shapes[dim]).copyto(ctx)
+        shapes = [(), (17), (17, 17), (17, 17, 17)]
+        for dtype, dim in itertools.product(dtypes, dims):
+            mx.random.seed(1234, ctx=ctx)
+            tensor = mx.nd.random.uniform(-100, 100, shape=shapes[dim], ctx=ctx)
             tensor = tensor.astype(dtype)
             multiplied = tensor.copy()
             bps.byteps_declare_tensor("tensor_" + str(count))
@@ -125,7 +123,7 @@ class MXTest:
             elif size < 15:
                 threshold = 5e-4
             else:
-                pass # continue # break
+                break
 
             if max_difference > threshold:
                 print("self", count, dtype, dim, max_difference, threshold)
