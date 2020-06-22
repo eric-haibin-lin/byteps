@@ -44,7 +44,11 @@ def worker(local_rank, local_size, command):
         trace_path = os.path.join(os.environ.get("BYTEPS_TRACE_DIR", "."), str(local_rank))
         if not os.path.exists(trace_path):
             os.makedirs(trace_path)
-    subprocess.check_call(command, env=my_env, stdout=sys.stdout, stderr=sys.stderr, shell=True)
+    try:
+        subprocess.check_call(command, env=my_env, stdout=sys.stdout, stderr=sys.stderr, shell=True)
+    except subprocess.CalledProcessError as e:
+        print(e.output)
+
 
 def launch_bps():
     print("BytePS launching " + os.environ["DMLC_ROLE"])
