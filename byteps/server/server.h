@@ -146,7 +146,8 @@ uint64_t EncodeKey(ps::Key key) {
 size_t GetThreadID(uint64_t key, size_t len) {
   std::lock_guard<std::mutex> lock(hash_mu_);
   if (len == 0) { // pull
-    CHECK_NE(hash_cache_.find(key), hash_cache_.end());
+    CHECK_NE(hash_cache_.find(key), hash_cache_.end())
+      << "Unable to find key: " << key;
     return hash_cache_[key];
   }
   if (hash_cache_.find(key) != hash_cache_.end()) {
